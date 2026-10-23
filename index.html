@@ -13,6 +13,47 @@
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://barber-shop-phi-kohl.vercel.app/assets/share.png">
+  <script id="bl-hold">
+  /* Keep the screen blank white until the site has fully drawn, then show it in one go.
+     Runs on window, so it survives the bundle swapping out the document. */
+  (function(){
+    var revealed=false, started=0;
+    function ensureHide(){
+      if(revealed||!document.head) return;
+      if(!document.getElementById('bl-hide')){
+        var st=document.createElement('style'); st.id='bl-hide';
+        st.textContent='html{background:#fff!important}body{visibility:hidden!important}';
+        document.head.appendChild(st);
+      }
+    }
+    function ready(){
+      if(!document.querySelector('header')) return false;
+      var imgs=[].slice.call(document.images);
+      return imgs.every(function(i){return i.complete;});
+    }
+    function reveal(){
+      if(revealed) return; revealed=true; obs.disconnect();
+      var b=document.body; if(b){b.style.opacity='0';b.style.transition='opacity .25s ease';}
+      var st=document.getElementById('bl-hide'); if(st) st.remove();
+      requestAnimationFrame(function(){requestAnimationFrame(function(){if(b) b.style.opacity='1';});});
+    }
+    function check(){
+      if(revealed) return; ensureHide();
+      var built=!!document.querySelector('header');
+      if(built&&!started) started=Date.now();
+      if(started&&Date.now()-started>4000) return reveal();
+      if(ready()){
+        var f=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
+        f.then(function(){ if(ready()) reveal(); });
+      }
+    }
+    var obs=new MutationObserver(check);
+    obs.observe(document,{childList:true,subtree:true});
+    document.addEventListener('load',check,true);
+    var t=setInterval(function(){ if(revealed) clearInterval(t); else check(); },150);
+    ensureHide();
+  })();
+  </script>
   <style>#__bundler_loading{display:none!important}</style>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
